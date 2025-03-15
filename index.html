@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>单词消消乐</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- 触摸事件处理脚本 -->
+    <script src="touch-handler.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>单词消消乐</h1>
+            <div class="settings">
+                <button id="settingsBtn">设置</button>
+                <button id="startBtn">开始游戏</button>
+                <button id="pauseBtn">暂停</button>
+                <button id="resetBtn">重置</button>
+            </div>
+        </header>
+
+        <div class="game-area">
+            <div class="team-side left-side">
+                <div class="team-header">
+                    <h2>左队</h2>
+                    <div class="score">得分: <span id="leftScore">0</span></div>
+                </div>
+                
+                <div class="game-content">
+                    <div class="word-display" id="leftWordDisplay">
+                        <div class="timer-container">
+                            <div class="timer-bar" id="leftTimerBar"></div>
+                            <div class="timer-text" id="leftTimerText">10</div>
+                        </div>
+                        <div class="current-word" id="leftCurrentWord">准备开始...</div>
+                    </div>
+                    <div class="options-container" id="leftOptionsContainer">
+                        <!-- 选项将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="team-side right-side">
+                <div class="team-header">
+                    <h2>右队</h2>
+                    <div class="score">得分: <span id="rightScore">0</span></div>
+                </div>
+                
+                <div class="game-content">
+                    <div class="word-display" id="rightWordDisplay">
+                        <div class="timer-container">
+                            <div class="timer-bar" id="rightTimerBar"></div>
+                            <div class="timer-text" id="rightTimerText">10</div>
+                        </div>
+                        <div class="current-word" id="rightCurrentWord">准备开始...</div>
+                    </div>
+                    <div class="options-container" id="rightOptionsContainer">
+                        <!-- 选项将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 设置模态框 -->
+        <div class="modal" id="settingsModal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>游戏设置</h2>
+                
+                <div class="setting-group">
+                    <label for="wordFile">上传单词表 (Excel格式)</label>
+                    <div class="file-upload">
+                        <input type="file" id="wordFile" accept=".xlsx, .xls">
+                        <label for="wordFile" class="file-label">
+                            <span class="material-icons">upload_file</span>
+                            <span class="file-text">选择文件</span>
+                        </label>
+                        <span class="file-name" id="wordFileName">未选择文件</span>
+                    </div>
+                    <p class="hint">A列为英文单词，B列为中文释义</p>
+                </div>
+                
+                <div class="setting-group">
+                    <label for="confusionFile">上传混淆表 (Excel格式，可选)</label>
+                    <div class="file-upload">
+                        <input type="file" id="confusionFile" accept=".xlsx, .xls">
+                        <label for="confusionFile" class="file-label">
+                            <span class="material-icons">upload_file</span>
+                            <span class="file-text">选择文件</span>
+                        </label>
+                        <span class="file-name" id="confusionFileName">未选择文件</span>
+                    </div>
+                    <p class="hint">A列为混淆用英文单词，B列为中文释义</p>
+                </div>
+                
+                <div class="setting-group">
+                    <label for="gameMode">游戏模式</label>
+                    <div class="custom-select">
+                        <select id="gameMode">
+                            <option value="en2zh">显示英文，选择中文</option>
+                            <option value="zh2en">显示中文，选择英文</option>
+                        </select>
+                        <span class="material-icons select-icon">expand_more</span>
+                    </div>
+                </div>
+                
+                <div class="setting-group">
+                    <label for="timeLimit">答题时间 (秒)</label>
+                    <div class="custom-input">
+                        <input type="number" id="timeLimit" min="3" max="60" value="10">
+                    </div>
+                </div>
+                
+                <div class="setting-group">
+                    <label for="optionsCount">选项数量</label>
+                    <div class="custom-input">
+                        <input type="number" id="optionsCount" min="2" max="6" value="4">
+                    </div>
+                </div>
+                
+                <div class="setting-group">
+                    <label>游戏节奏</label>
+                    <div class="radio-group modern">
+                        <label class="radio-label">
+                            <input type="radio" name="gameSpeed" id="competitiveMode" value="competitive" checked>
+                            <span class="radio-custom"></span>
+                            <span>竞技模式 (一方作答完成立即进入下一题)</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="gameSpeed" id="tournamentMode" value="tournament">
+                            <span class="radio-custom"></span>
+                            <span>比赛模式 (一方作答完毕，另一方立即换题)</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="setting-group">
+                    <label>出题顺序</label>
+                    <div class="radio-group modern">
+                        <label class="radio-label">
+                            <input type="radio" name="wordOrder" id="sequentialOrder" value="sequential" checked>
+                            <span class="radio-custom"></span>
+                            <span>顺序出题 (按单词表顺序)</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="wordOrder" id="singleRandomOrder" value="singleRandom">
+                            <span class="radio-custom"></span>
+                            <span>单乱序 (单词表乱序后出题，两队相同)</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="wordOrder" id="doubleRandomOrder" value="doubleRandom">
+                            <span class="radio-custom"></span>
+                            <span>双乱序 (两队使用不同的乱序单词表)</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <button id="saveSettingsBtn">保存设置</button>
+            </div>
+        </div>
+
+        <!-- 游戏结果模态框 -->
+        <div class="result-modal" id="resultModal">
+            <div class="result-content">
+                <div class="result-header">
+                    <h2 id="resultTitle">游戏结束！</h2>
+                    <div class="result-scores">
+                        <div class="team-result left-result">
+                            <h3>左队</h3>
+                            <div class="result-score" id="leftFinalScore">0</div>
+                        </div>
+                        <div class="versus">VS</div>
+                        <div class="team-result right-result">
+                            <h3>右队</h3>
+                            <div class="result-score" id="rightFinalScore">0</div>
+                        </div>
+                    </div>
+                    <div class="result-winner" id="winnerAnnouncement">平局！</div>
+                </div>
+                <div class="result-actions">
+                    <button id="showMistakesBtn" class="action-btn">
+                        <span class="material-icons">error_outline</span> 查看错题
+                    </button>
+                    <button id="playAgainBtn" class="action-btn">
+                        <span class="material-icons">replay</span> 再来一局
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 错题查看模态框 -->
+        <div class="mistakes-modal" id="mistakesModal">
+            <div class="mistakes-overlay"></div>
+            <div class="mistakes-content">
+                <div class="mistakes-header">
+                    <h2>错题回顾</h2>
+                    <button id="closeMistakesBtn" class="close-btn">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+                <div class="teams-mistakes">
+                    <div class="team-mistakes-section">
+                        <h3>左队错题</h3>
+                        <div class="team-mistakes-list" id="leftMistakesList"></div>
+                    </div>
+                    <div class="team-mistakes-section">
+                        <h3>右队错题</h3>
+                        <div class="team-mistakes-list" id="rightMistakesList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入xlsx.js库用于解析Excel文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
